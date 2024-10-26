@@ -1,0 +1,43 @@
+name: ${SITE_HANDLE}
+services:
+  web:
+    build: 
+      context: .
+      args:
+        - PHP_VERSION=${PHP_VERSION}
+        - CONCRETE_VERSION=${CONCRETE_VERSION}
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - db    
+    volumes:
+      - vol_web:/var/www/html # For local binding, change to ./web_data:/var/www/html
+      - ./ssl/mycert.crt:/etc/ssl/certs/mycert.crt
+      - ./ssl/mycert.key:/etc/ssl/private/mycert.key
+    restart: always
+    environment:
+      - TZ=${TIME_ZONE}
+  db:
+    image: mariadb:${MARIADB_VERSION}
+    #image: mysql:${MYSQL_VERSION}
+    environment:
+      - TZ=${TIME_ZONE}
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PW}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    restart: always
+    volumes:
+      - vol_db:/var/lib/mysql
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "${PHPMYADMIN_PORT}:80"
+    depends_on:
+      - db
+    environment:
+      PMA_HOST: db
+volumes:
+  vol_web: # Delete this line if using local binding for webserver files (line 15)
+  vol_db:
